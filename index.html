@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>COSMOS – SWATBot FINAL</title>
+
+<style>
+body { margin:0; font-family:Arial,sans-serif; background:#f4f6f9; }
+
+/* HEADER */
+.sf-header {
+  height:52px; background:#1f2933; color:#fff;
+  display:flex; align-items:center; gap:16px;
+  padding:0 12px; font-size:13px;
+}
+.sf-left { display:flex; gap:10px; align-items:center; }
+.sf-tabs { display:flex; gap:18px; }
+.sf-right { margin-left:auto; display:flex; gap:12px; }
+
+/* PAGE */
+.page { padding:16px; }
+.welcome {
+  background:#fff; padding:16px; border-radius:6px;
+  display:grid; grid-template-columns:1fr auto 1fr;
+  box-shadow:0 1px 3px rgba(0,0,0,.1);
+}
+.ask { display:flex; gap:8px; }
+.ask input { width:300px; padding:8px; }
+.ask button {
+  background:#2563eb; color:#fff;
+  border:none; padding:8px 14px; border-radius:4px;
+  cursor:pointer;
+}
+.error { color:#dc2626; font-size:12px; margin-top:6px; }
+
+.cap {
+  background:#fff; margin-top:12px; padding:16px;
+  text-align:center; border-radius:6px;
+}
+
+.dashboard-tabs {
+  margin:16px 0; font-weight:bold;
+  display:flex; gap:24px;
+}
+
+.layout {
+  display:grid; grid-template-columns:3fr 1fr; gap:16px;
+}
+.card {
+  background:#fff; border-radius:6px;
+  padding:20px; min-height:120px; margin-bottom:12px;
+}
+
+/* UTILITY BAR */
+.utility-bar {
+  position:fixed; bottom:0; right:0;
+  background:#1f2933; color:#fff;
+  display:flex; gap:12px;
+  padding:8px 12px; font-size:13px;
+}
+.utility-bar span { cursor:pointer; }
+
+/* SWATBOT */
+#swatbot {
+  position:fixed; inset:0;
+  background:#fff; display:none;
+  z-index:9999;
+}
+
+.sw-header {
+  height:42px; background:#f8fafc;
+  border-bottom:1px solid #e5e7eb;
+  padding:10px 14px;
+  display:flex; justify-content:space-between;
+  font-weight:bold;
+}
+
+.sw-body {
+  display:grid; grid-template-columns:260px 1fr;
+  height:calc(100vh - 42px);
+}
+
+.sw-left {
+  border-right:1px solid #e5e7eb;
+  padding:10px;
+}
+.sw-left button {
+  width:100%; background:#b45309; color:#fff;
+  border:none; padding:8px; border-radius:4px;
+  margin-bottom:10px;
+}
+.history div {
+  padding:6px; font-size:13px;
+  cursor:pointer; border-radius:4px;
+}
+.history div:hover { background:#e5e7eb; }
+
+.sw-main {
+  padding:24px;
+  display:flex; flex-direction:column;
+  height:100%;
+}
+
+.chat-area {
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  overflow-y:auto;
+  padding-bottom:16px;
+}
+
+.user {
+  align-self:flex-end;
+  background:#2563eb; color:#fff;
+  padding:10px; border-radius:6px;
+  max-width:60%;
+}
+
+.bot {
+  align-self:flex-start;
+  background:#e0f2fe;
+  padding:10px; border-radius:6px;
+  max-width:60%;
+}
+
+.chat-input {
+  display:flex;
+  gap:8px;
+  position:sticky;
+  bottom:0;
+  background:#fff;
+  padding-top:10px;
+  border-top:1px solid #e5e7eb;
+}
+
+.chat-input textarea {
+  flex:1;
+  padding:10px;
+  resize:none;
+}
+
+.chat-input button {
+  background:#2563eb; color:#fff;
+  border:none; padding:10px 14px;
+  border-radius:4px;
+}
+
+.option {
+  border:1px solid #e5e7eb;
+  padding:12px;
+  border-radius:6px;
+  margin-top:12px;
+  cursor:pointer;
+}
+/* ===== DASHBOARD VISUALS ===== */
+.chart {
+  margin-top: 12px;
+}
+
+.bar-stack {
+  display: flex;
+  height: 18px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #e5e7eb;
+}
+
+.bar-soa { background:#1d4ed8; }
+.bar-fba { background:#2563eb; }
+.bar-b2b { background:#0ea5e9; }
+.bar-msf { background:#facc15; }
+.bar-sponsored { background:#f59e0b; }
+
+.hbar {
+  display: flex;
+  align-items: center;
+  margin: 8px 0;
+  gap: 10px;
+}
+
+.hbar span {
+  width: 120px;
+  font-size: 12px;
+}
+
+.hbar div {
+  height: 16px;
+  background:#1d4ed8;
+  border-radius: 4px;
+}
+
+.deal {
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.deal a {
+  color:#2563eb;
+  text-decoration:none;
+}
+.deal small {
+  color:#6b7280;
+}
+/* === HIGHLIGHT SWATBOT IN UTILITY BAR === */
+.utility-bar .swatbot-highlight {
+  background: #f59e0b;          /* Salesforce orange */
+  color: #1f2933;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.utility-bar .swatbot-highlight:hover {
+  background: #fbbf24;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="sf-header">
+  <div class="sf-left">☰ <b>COSMOS</b> Seller Sales</div>
+  <div class="sf-tabs">
+    <span>Home</span><span>Accounts</span><span>Opportunities</span>
+    <span>Cases</span><span>Reports</span><span>More ▾</span>
+  </div>
+  <div class="sf-right">🔍 ⚙ ❔ 👤</div>
+</div>
+
+<div class="page">
+  <div class="welcome">
+    <div>
+      <b>Welcome to Cosmos's Home Tab!</b>
+      <div style="font-size:12px;">
+        This is your access to learn more about customer and deliver the monthly mission.
+      </div>
+    </div>
+    <div class="ask">
+      <input id="homeQuery" placeholder="Search or ask a question..." />
+      <button id="askBtn">Ask SWATBot</button>
+    </div>
+    <div></div>
+  </div>
+  <div id="err" class="error" style="display:none;">Please enter a query</div>
+
+  <div class="cap"><b>Solve Seller Issues in a Jiffy!!</b><br>Central Assist Portal (CAP)</div>
+
+  <div class="dashboard-tabs">Dashboard &nbsp; AIM View &nbsp; OCC View</div>
+
+  <div class="layout">
+    <div>
+      <div class="card">
+  <b>My Launches</b>
+
+  <div class="chart">
+    <div class="bar-stack">
+      <div class="bar-soa" style="width:40%"></div>
+      <div class="bar-fba" style="width:25%"></div>
+      <div class="bar-b2b" style="width:15%"></div>
+      <div class="bar-msf" style="width:10%"></div>
+      <div class="bar-sponsored" style="width:10%"></div>
+    </div>
+    <small>SOA · FBA · B2B · MSF · Sponsored</small>
+  </div>
+</div>
+
+      <div class="card">
+  <b>My open Funnel – SOA</b>
+
+  <div class="chart">
+    <div class="hbar">
+      <span>Business Definition</span>
+      <div style="width:70%"></div>
+    </div>
+    <div class="hbar">
+      <span>Evaluation</span>
+      <div style="width:60%"></div>
+    </div>
+    <div class="hbar">
+      <span>Commitment</span>
+      <div style="width:50%"></div>
+    </div>
+  </div>
+</div>
+
+      <div class="card">
+  <b>My open Funnel – FBA</b>
+
+  <div class="chart">
+    <div class="hbar">
+      <span>Evaluation</span>
+      <div style="width:90%"></div>
+    </div>
+    <div class="hbar">
+      <span>Commitment</span>
+      <div style="width:40%"></div>
+    </div>
+    <div class="hbar">
+      <span>Preparation</span>
+      <div style="width:30%"></div>
+    </div>
+    <div class="hbar">
+      <span>Onboarding</span>
+      <div style="width:15%"></div>
+    </div>
+    <div class="hbar">
+      <span>Ready to Launch</span>
+      <div style="width:25%"></div>
+    </div>
+  </div>
+</div>
+
+    </div>
+    <div>
+      <div class="card">
+  <b>Key Deals – Recent Opportunities</b>
+
+  <div class="deal">
+    <a href="#">RADONGROW – IN – SOA – Direct</a><br>
+    <small>Rahul Kumar</small>
+  </div>
+
+  <div class="deal">
+    <a href="#">CULTSPORT PRIVATE LIMITED – IN – SOA – Direct</a><br>
+    <small>Samarth Saraf</small>
+  </div>
+
+  <div class="deal">
+    <a href="#">PACB – IN – SOA – Direct</a><br>
+    <small>Ashutosh Kumar</small>
+  </div>
+
+  <a href="#" style="font-size:12px;color:#2563eb;">View All Key Deals</a>
+</div>
+
+      <div class="card">Today's Tasks</div>
+      <div class="card">Today's Events</div>
+    </div>
+  </div>
+</div>
+
+<!-- SWATBOT WINDOW -->
+<div id="swatbot">
+  <div class="sw-header">
+    SWATBot AI
+    <span id="closeBtn" style="cursor:pointer">✕</span>
+  </div>
+
+  <div class="sw-body">
+    <div class="sw-left">
+      <button id="newChatBtn">New Chat</button>
+      <div class="history" id="history"></div>
+    </div>
+
+    <div class="sw-main">
+      <div class="chat-area" id="chatArea"></div>
+      <div class="chat-input" id="chatInputBox">
+        <textarea id="chatInput" rows="2" placeholder="Type your message..."></textarea>
+        <button id="sendBtn">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UTILITY BAR -->
+<div class="utility-bar">
+  <<span id="utilitySwatbot" class="swatbot-highlight">
+  💬 SWATBot AI
+</span>
+
+  <span>Screen Dialer</span>
+</div>
+<!-- SWATBOT SLIDER (UTILITY BAR ONLY) -->
+<!-- SWATBOT SLIDER (UTILITY BAR ONLY) -->
+<div id="swatbotSlider" style="
+  position:fixed;
+  top:0;
+  right:-380px;
+  width:380px;
+  height:100%;
+  background:#fff;
+  border-left:1px solid #e5e7eb;
+  z-index:9998;
+  transition:right 0.3s ease;
+">
+  <div style="
+    height:42px;
+    padding:10px 14px;
+    border-bottom:1px solid #e5e7eb;
+    font-weight:bold;
+    display:flex;
+    justify-content:space-between;
+  ">
+    SWATBot AI
+    <span onclick="closeSlider()" style="cursor:pointer">✕</span>
+  </div>
+
+  <div id="sliderBody" style="padding:16px;">
+    <div class="option" onclick="sliderGeneral()">General Queries</div>
+    <div class="option" onclick="sliderAsin()">ASIN Suppression</div>
+  </div>
+</div>
+<script>
+let chats = [];
+let currentChatId = null;
+let chatMode = "chat";
+
+const swatbot = document.getElementById("swatbot");
+const chatArea = document.getElementById("chatArea");
+const history = document.getElementById("history");
+const chatInputBox = document.getElementById("chatInputBox");
+const chatInput = document.getElementById("chatInput");
+const err = document.getElementById("err");
+
+function openWindow() {
+  swatbot.style.display = "block";
+}
+
+function updateInput() {
+  chatInputBox.style.display = chatMode === "chat" ? "flex" : "none";
+}
+
+function render() {
+  chatArea.innerHTML = "";
+  history.innerHTML = "";
+
+  chats.forEach(c => {
+    const h = document.createElement("div");
+    h.textContent = c.title;
+    h.onclick = () => {
+      currentChatId = c.id;
+      chatMode = "chat";
+      render();
+    };
+    history.appendChild(h);
+  });
+
+  const chat = chats.find(c => c.id === currentChatId);
+  if (!chat) return;
+
+  chat.messages.forEach(m => {
+    const d = document.createElement("div");
+    d.className = m.sender === "user" ? "user" : "bot";
+    d.textContent = m.text;
+    chatArea.appendChild(d);
+  });
+
+  updateInput();
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+/* Ask from Home */
+document.getElementById("askBtn").onclick = () => {
+  const q = homeQuery.value.trim();
+  if (!q) { err.style.display = "block"; return; }
+  err.style.display = "none";
+
+  openWindow();
+  chatMode = "chat";
+
+  const id = Date.now();
+  chats.push({
+    id,
+    title: q.slice(0, 30),
+    messages: [
+      { sender: "user", text: q },
+      { sender: "bot", text: "Your ASIN appears suppressed. Please check Seller Central and prepare required documents." }
+    ]
+  });
+
+  currentChatId = id;
+  render();
+};
+
+/* Send */
+sendBtn.onclick = () => {
+  if (!chatInput.value || !currentChatId) return;
+  const chat = chats.find(c => c.id === currentChatId);
+  chat.messages.push({ sender: "user", text: chatInput.value });
+  chat.messages.push({ sender: "bot", text: "I can help further — tell me what you'd like to do next." });
+  chatInput.value = "";
+  render();
+};
+
+/* New Chat */
+newChatBtn.onclick = () => {
+  const id = Date.now();
+  chats.push({
+    id,
+    title: "New Chat",
+    messages: [{ sender: "bot", text: "Hello! I am SWATBot AI. What would you like to do?" }]
+  });
+  currentChatId = id;
+  chatMode = "chat";
+  render();
+  renderOptions();
+};
+
+function renderOptions() {
+  const wrap = document.createElement("div");
+  wrap.innerHTML = `
+    <div class="option" onclick="general()">General Queries</div>
+    <div class="option" onclick="asin()">ASIN Suppression</div>
+  `;
+  chatArea.appendChild(wrap);
+}
+
+function general() {
+  chatMode = "chat";
+  const chat = chats.find(c => c.id === currentChatId);
+  chat.messages.push({ sender: "bot", text: "Sure — ask your question below." });
+  render();
+}
+
+function asin() {
+  chatMode = "form";
+  const chat = chats.find(c => c.id === currentChatId);
+  chat.messages.push({ sender: "bot", text: "Please fill the ASIN Suppression details below." });
+  render();
+
+  const form = document.createElement("div");
+  form.innerHTML = `
+    <div style="margin-top:12px">
+      PCID<br><input><br><br>
+      ASIN<br><input><br><br>
+      Seller Email ID<br><input><br><br>
+      State<br><select><option>Select</option></select><br><br>
+      Upload documents<br><input type="file"><br><br>
+      <button>Submit</button>
+    </div>
+  `;
+  chatArea.appendChild(form);
+}
+
+/* Utility Bar */
+utilitySwatbot.onclick = () => {
+  openSlider();
+};
+
+
+closeBtn.onclick = () => swatbot.style.display = "none";
+// ===== UTILITY SLIDER ONLY (NO FULLSCREEN TOUCH) =====
+const slider = document.getElementById("swatbotSlider");
+const sliderBody = document.getElementById("sliderBody");
+
+function openSlider() {
+  slider.style.right = "0";
+}
+
+function closeSlider() {
+  slider.style.right = "-380px";
+}
+
+function sliderGeneral() {
+  sliderBody.innerHTML = `
+    <div class="bot">
+      You selected <b>General Queries</b>.<br><br>
+      Please use <b>Ask SWATBot</b> for detailed chat.
+    </div>
+  `;
+}
+
+function sliderAsin() {
+  sliderBody.innerHTML = `
+    <div class="bot"><b>ASIN Suppression</b></div><br>
+    PCID<br><input><br><br>
+    ASIN<br><input><br><br>
+    Seller Email ID<br><input><br><br>
+    State<br><select><option>Select</option></select><br><br>
+    <button>Submit</button>
+  `;
+}
+
+
+</script>
+
+
+</body>
+</html>
